@@ -29,7 +29,7 @@ vectorstore = Chroma(
 retriever = vectorstore.as_retriever(
     search_type = "similarity",
     search_kwargs = {
-        "k" : 4,
+        "k" : 6,
         # "fetch_k":10,
         # "lambda_mult" :0.5
     }
@@ -45,20 +45,17 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "system",
 
-"""You are a helpful RAG assistant.
+         """You are a Kashmir travel assistant.
 
-Use the provided context as your PRIMARY source to answer questions.
-
-If the context contains relevant information, answer from it.
-
-If the context does not contain enough information, you may use your 
-general knowledge but clearly say: "Based on my general knowledge:"
-
-If the question is completely unrelated to the document, answer it 
-naturally as a helpful assistant.
-
-Keep answers concise and clear.
+STRICT RULES:
+- Answer ONLY from the context provided below
+- Do NOT use your own knowledge
+- Do NOT generate extra information
+- If context does not have the answer, say "I don't have that information"
+- Keep answers short and direct
+- Only recommend agencyhi and places that are mentioned in the context
 """
+
         ),
         (
             "human",
