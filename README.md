@@ -184,5 +184,5 @@ MIT License
 ---
 
 ## Author
+hadi mushtaq trumboo
 
-Made with ❤️ by Hadi
