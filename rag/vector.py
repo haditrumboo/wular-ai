@@ -12,7 +12,6 @@ load_dotenv(find_dotenv())
 
 urls = [
     "https://7knetwork.com/business-ideas-in-kashmir/",
-    "https://kashmirtourism.gov.in",
     "https://en.wikipedia.org/wiki/Kashmir",
     "https://en.wikipedia.org/wiki/Gulmarg",
     "https://en.wikipedia.org/wiki/Pahalgam",
@@ -32,7 +31,7 @@ txt_files = [
     "agencies.txt",     
     "shops.txt",        
     "food.txt", 
-    "hey.txt",        
+    "data.txt",        
 ]
 
 data = []

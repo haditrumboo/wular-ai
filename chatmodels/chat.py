@@ -1,11 +1,14 @@
 
 
 from dotenv import load_dotenv
+from langchain_core import chat_history
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.callbacks import StreamingStdOutCallbackHandler
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 load_dotenv()
 import os
@@ -14,6 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
+chat_history = ChatMessageHistory()
 
 embedding_model = HuggingFaceEmbeddings(
     model_name="BAAI/bge-small-en-v1.5",
@@ -37,7 +41,7 @@ retriever = vectorstore.as_retriever(
 llm = ChatGroq(
     model="llama-3.1-8b-instant",
     temperature=0.1,
-    streaming=True,
+    streaming=False,
     callbacks=[StreamingStdOutCallbackHandler()]
 )
 prompt = ChatPromptTemplate.from_messages(
@@ -45,18 +49,24 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "system",
 
-         """You are a Kashmir travel assistant.
+              """You are Wular AI, a Kashmir travel assistant.
+
+GREETING RULE:
+- If user says hi, hello, or any greeting, respond ONCE with:
+  "Welcome to Wular AI! I am your personal Kashmir travel guide.
+   Where are you traveling from, and how many days are you planning to stay in Kashmir?"
+- NEVER repeat this greeting again in the conversation
 
 STRICT RULES:
-- Answer ONLY from the context provided below
+- Answer ONLY from the context provided
 - Do NOT use your own knowledge
-- Do NOT generate extra information
 - If context does not have the answer, say "I don't have that information"
 - Keep answers short and direct
-- Only recommend agencyhi and places that are mentioned in the context
+- Only recommend agencies and places mentioned in the context
 """
 
         ),
+        MessagesPlaceholder(variable_name="chat_history"),
         (
             "human",
             """Context:
@@ -85,7 +95,8 @@ while True:
 
     final_prompt = prompt.invoke({
         "context": context,
-        "question": query
+        "question": query,
+         "chat_history": chat_history.messages 
     })
 
     print("\nAI is thinking", end="")
@@ -97,11 +108,14 @@ while True:
     print("\n")
 
     print("AI: ", end="")
+    response = llm.invoke(final_prompt)
+    print(response.content)
 
-    llm.invoke(final_prompt)
+    chat_history.add_user_message(query)
+    chat_history.add_ai_message(response.content)
 
-    print("\nSources:")
-    for doc in docs:
-        print(" -", doc.metadata.get("source"))
+    # print("\nSources:")
+    # for doc in docs:
+    #     print(" -", doc.metadata.get("source"))
 
     print()
